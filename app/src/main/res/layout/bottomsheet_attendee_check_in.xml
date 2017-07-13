@@ -45,7 +45,7 @@
                     android:layout_marginEnd="@dimen/spacing_large"
                     android:layout_marginRight="@dimen/spacing_large"
                     android:padding="@dimen/spacing_extra_small"
-                    android:text='@{Utils.formatOptionalString("%s %s", checkinAttendee.firstName, checkinAttendee.lastName)}'
+                    android:text='@{Utils.formatOptionalString("%s %s", checkinAttendee.firstname, checkinAttendee.lastname)}'
                     tools:text="Name" />
 
                 <TextView

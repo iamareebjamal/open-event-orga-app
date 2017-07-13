@@ -7,11 +7,11 @@ import org.fossasia.openevent.app.data.models.Event_Table;
 import org.fossasia.openevent.app.data.models.User;
 import org.fossasia.openevent.app.data.network.EventService;
 import org.fossasia.openevent.app.data.repository.contract.IEventRepository;
+import org.fossasia.openevent.app.utils.JWTUtils;
 
 import javax.inject.Inject;
 
 import io.reactivex.Observable;
-import timber.log.Timber;
 
 public class EventRepository extends Repository implements IEventRepository {
 
@@ -31,7 +31,7 @@ public class EventRepository extends Repository implements IEventRepository {
 
         Observable<User> networkObservable = Observable.defer(() ->
             eventService
-                .getUser(getAuthorization())
+                .getUser(JWTUtils.getIdentity(getAuthorization()))
                 .doOnNext(user -> databaseRepository
                     .save(User.class, user)
                     .subscribe()
@@ -59,11 +59,12 @@ public class EventRepository extends Repository implements IEventRepository {
                 .getEvent(eventId)
                 .doOnNext(event -> {
                     event.setComplete(true);
+
                     databaseRepository
                         .save(Event.class, event)
                         .subscribe();
-                })
-        );
+                }
+        ));
 
         return new AbstractObservableBuilder<Event>(utilModel)
             .reload(reload)
@@ -79,22 +80,12 @@ public class EventRepository extends Repository implements IEventRepository {
         );
 
         Observable<Event> networkObservable = Observable.defer(() ->
-            eventService.getEvents(getAuthorization())
-                .doOnNext(events -> databaseRepository.deleteAll(Event.class)
+            eventService.getEvents(JWTUtils.getIdentity(getAuthorization()))
+                .doOnNext(events -> databaseRepository
+                    .deleteAll(Event.class)
                     .concatWith(databaseRepository.saveList(Event.class, events))
                     .subscribe())
-                .flatMapIterable(events -> events))
-                .doOnEach(eventNotification -> {
-                    // Download all complete events in one go
-                    if (!eventNotification.isOnNext())
-                        return;
-                    Event event = eventNotification.getValue();
-                    getEvent(event.getId(), false)
-                        .subscribe(
-                            eventDownloaded ->
-                                Timber.d("Downloaded complete event %s", eventDownloaded.getName()),
-                            Timber::e);
-                });
+                .flatMapIterable(events -> events));
 
         return new AbstractObservableBuilder<Event>(utilModel)
             .reload(reload)

@@ -35,7 +35,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="@dimen/text_size_normal"
                 android:textColor="@android:color/black"
-                android:text='@{attendee.firstName + " " + attendee.lastName}' />
+                android:text='@{attendee.firstname + " " + attendee.lastname}' />
 
 
             <TextView
