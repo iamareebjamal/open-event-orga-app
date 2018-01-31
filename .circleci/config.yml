@@ -5,11 +5,15 @@ jobs:
     docker:
       - image: circleci/android:api-27-alpha
     environment:
-      JVM_OPTS: -Xmx3200m
+      GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"'
+      TERM: dumb
     steps:
       - checkout
       - restore_cache:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+      - run:
+          name: Disabling Gradle Daemon
+          command: mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
       - run:
           name: Download Dependencies
           command: ./gradlew androidDependencies
@@ -18,10 +22,16 @@ jobs:
             - ~/.gradle
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
       - run:
-          name: Run Tests
-          command: ./gradlew lint test
+          name: Test Coverage
+          command: ./gradlew testDebugUnitTestCoverage
+      - run:
+          name: Running Static Analysis
+          command: ./gradlew lint androidCheck androidPmd androidFindbugs
       - store_artifacts:
           path: app/build/reports
           destination: reports
+      - store_artifacts:
+          path: app/build/outputs
+          destination: outputs
       - store_test_results:
           path: app/build/test-results
