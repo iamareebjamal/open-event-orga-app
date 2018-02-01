@@ -23,10 +23,7 @@ jobs:
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
       - run:
           name: Test Coverage
-          command: ./gradlew testDebugUnitTestCoverage
-      - run:
-          name: Running Static Analysis
-          command: ./gradlew lint androidCheck androidPmd androidFindbugs
+          command: ./gradlew lint test
       - store_artifacts:
           path: app/build/reports
           destination: reports
