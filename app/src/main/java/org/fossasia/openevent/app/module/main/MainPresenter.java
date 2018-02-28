@@ -103,6 +103,8 @@ public class MainPresenter extends BasePresenter<IMainView> implements IMainPres
     }
 
     private void showEvent(Event event) {
+        if (event == null)
+            return;
         getView().setEventId(event.getId());
         getView().showDashboard();
     }
